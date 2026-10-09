@@ -17,7 +17,9 @@
     "react-dom": "^18.3.1",
     "lucide-react": "^0.468.0",
     "mp4-muxer": "^5.2.2",
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
