@@ -13,13 +13,16 @@ export async function exportTransparentMov(scenes:Scene[],onProgress:(n:number)=
  if(duration>8)throw new Error('浏览器透明 MOV 测试版暂限 8 秒。请先使用短 SRT 测试；长视频仍可用 PNG 序列 + Windows FFmpeg。');
  if(!navigator.onLine)throw new Error('首次使用需要联网加载 FFmpeg 编码组件。');
  const ffmpeg=new FFmpeg();
- const coreURL='https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
-const wasmURL='https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm';
+const coreURL='/ffmpeg/ffmpeg-core.js';
+const wasmURL='/ffmpeg/ffmpeg-core.wasm';
  const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
  const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)throw new Error('无法创建透明画布');
  try{
   onProgress(1);
-  await ffmpeg.load({coreURL:await toBlobURL(coreURL,'text/javascript'),wasmURL:await toBlobURL(wasmURL,'application/wasm')});
+  await ffmpeg.load({
+  coreURL: new URL(coreURL, window.location.origin).href,
+  wasmURL: new URL(wasmURL, window.location.origin).href
+});
   onProgress(12);
   const count=Math.ceil(duration*FPS);
   for(let i=0;i<count;i++){
