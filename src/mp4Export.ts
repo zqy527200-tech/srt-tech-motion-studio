@@ -9,7 +9,7 @@ function textLines(ctx:CanvasRenderingContext2D,text:string,maxWidth:number,maxL
  for(const c of chars){if(ctx.measureText(line+c).width>maxWidth&&line){lines.push(line);line=c}else line+=c;}
  if(line)lines.push(line);return lines.slice(0,maxLines);
 }
-function draw(ctx:CanvasRenderingContext2D,scenes:Scene[],sec:number){
+export function draw(ctx:CanvasRenderingContext2D,scenes:Scene[],sec:number){
  const scene=scenes.find(s=>sec>=s.start&&sec<s.end)??scenes[scenes.length-1];
  const local=Math.max(0,sec-scene.start),dur=scene.end-scene.start;
  const fade=Math.min(1,local/.4,Math.max(0,(dur-local)/.35));
