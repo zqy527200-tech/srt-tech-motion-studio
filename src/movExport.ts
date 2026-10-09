@@ -13,8 +13,8 @@ export async function exportTransparentMov(scenes:Scene[],onProgress:(n:number)=
  if(duration>8)throw new Error('浏览器透明 MOV 测试版暂限 8 秒。请先使用短 SRT 测试；长视频仍可用 PNG 序列 + Windows FFmpeg。');
  if(!navigator.onLine)throw new Error('首次使用需要联网加载 FFmpeg 编码组件。');
  const ffmpeg=new FFmpeg();
-const coreURL='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
-const wasmURL='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm';
+ const coreURL='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js';
+ const wasmURL='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm';
  const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
  const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)throw new Error('无法创建透明画布');
  try{
