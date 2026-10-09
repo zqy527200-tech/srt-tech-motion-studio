@@ -2,6 +2,8 @@ import JSZip from 'jszip';
 import type {Scene} from './scenes';
 import {draw} from './mp4Export';
 
+const FPS = 30;
+
 /** Lossless RGBA PNG frames. The zip is ready for ProRes 4444 conversion. */
 export async function exportTransparentFrames(scenes:Scene[], onProgress:(p:number)=>void):Promise<Blob>{
  if(!scenes.length) throw new Error('请先生成分镜');
