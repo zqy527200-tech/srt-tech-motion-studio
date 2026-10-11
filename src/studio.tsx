@@ -5,6 +5,7 @@ import {TechVideo} from './Video';
 import {exportMp4} from './mp4Export';
 import {exportTransparentFrames} from './transparentExport';
 import {exportTransparentMov} from './movExport';
+import {exportLongTransparentMov} from './movLongExport';
 import {demoScenes, parseSrt, type Scene} from './scenes';
 
 const sample = `1\n00:00:00,000 --> 00:00:03,000\n我从选题开始\n\n2\n00:00:03,000 --> 00:00:06,000\n拆解内容并组织脚本\n\n3\n00:00:06,000 --> 00:00:09,000\n用AI完成配音和数字人\n\n4\n00:00:09,000 --> 00:00:12,000\n最后用动画批量生成视频`;
