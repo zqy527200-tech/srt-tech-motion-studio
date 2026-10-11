@@ -11,11 +11,105 @@ function label(ctx:CanvasRenderingContext2D,t:string,x:number,y:number,size=18,c
 function wrap(ctx:CanvasRenderingContext2D,t:string,maxWidth:number,maxLines=3){const out:string[]=[];let s='';for(const ch of Array.from(t)){if(ctx.measureText(s+ch).width>maxWidth&&s){out.push(s);s=ch}else s+=ch}if(s)out.push(s);return out.slice(0,maxLines)}
 function dot(ctx:CanvasRenderingContext2D,x:number,y:number,r=4,color=cyan){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
 function panel(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,transparent:boolean){rr(ctx,x,y,w,h,14);ctx.fillStyle=transparent?'rgba(9,34,59,.70)':'#102a45';ctx.fill();ctx.strokeStyle='#3bdaff';ctx.lineWidth=1.5;ctx.stroke()}
-function workflow(ctx:CanvasRenderingContext2D,t:number,transparent:boolean){
- const names=['输入','识别','处理','输出'];
- names.forEach((name,i)=>{const x=35+i*124;panel(ctx,x,570,97,91,transparent);label(ctx,name,x+48,610,18,white,true);label(ctx,String(i+1).padStart(2,'0'),x+48,638,12,muted);if(i<3){line(ctx,x+99,617,x+122,617,'#307c9c');const progress=clamp(t*1.4-i*.27);dot(ctx,x+99+23*progress,617,3)}});
- const active=Math.floor((t*1.3)%4);rr(ctx,35+active*124,570,97,91,14);ctx.strokeStyle='#e6ffff';ctx.lineWidth=3;ctx.stroke();
+
+function workflow(
+  ctx: CanvasRenderingContext2D,
+  t: number,
+  transparent: boolean,
+  steps?: string[]
+) {
+  const names =
+    Array.isArray(steps) && steps.length >= 2
+      ? steps.slice(0, 4)
+      : ['输入', '识别', '处理', '输出'];
+
+  const count = names.length;
+  const gap = 16;
+  const boxW = (470 - gap * (count - 1)) / count;
+  const startX = 35;
+  const y = 570;
+  const boxH = 91;
+
+  names.forEach((name, i) => {
+    const x = startX + i * (boxW + gap);
+
+    // 节点依次出现
+    const appear = clamp((t - i * 0.35) / 0.4);
+
+    if (appear <= 0) return;
+
+    ctx.save();
+    ctx.globalAlpha *= appear;
+
+    panel(ctx, x, y, boxW, boxH, transparent);
+
+    // 节点名称
+    label(
+      ctx,
+      String(name).slice(0, 6),
+      x + boxW / 2,
+      y + 39,
+      count === 4 ? 15 : 18,
+      white,
+      true
+    );
+
+    // 节点编号
+    label(
+      ctx,
+      String(i + 1).padStart(2, '0'),
+      x + boxW / 2,
+      y + 68,
+      12,
+      muted
+    );
+
+    // 当前节点高亮
+    const active = Math.min(
+      count - 1,
+      Math.floor(t / 0.65) % count
+    );
+
+    if (i === active) {
+      rr(ctx, x, y, boxW, boxH, 14);
+      ctx.strokeStyle = '#e6ffff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    // 节点间连接线
+    if (i < count - 1) {
+      const progress = clamp((t - i * 0.35 - 0.2) / 0.45);
+
+      const x1 = x + boxW;
+      const x2 = x1 + gap;
+      const yy = y + boxH / 2;
+
+      line(
+        ctx,
+        x1,
+        yy,
+        x1 + gap * progress,
+        yy,
+        '#50e7ff',
+        2
+      );
+
+      if (progress > 0) {
+        dot(
+          ctx,
+          x1 + gap * progress,
+          yy,
+          3,
+          white
+        );
+      }
+    }
+  });
 }
+
 function chip(ctx:CanvasRenderingContext2D,t:number,transparent:boolean){
  const x=192,y=553,s=156;panel(ctx,x,y,s,s,transparent);rr(ctx,x+29,y+29,s-58,s-58,8);ctx.fillStyle='rgba(22,131,165,.35)';ctx.fill();ctx.strokeStyle='#8ef9ff';ctx.lineWidth=2;ctx.stroke();label(ctx,'AI',270,630,30,white,true);label(ctx,'CHIP',270,661,13,cyan);
  for(let i=0;i<8;i++){const p=565+i*18;line(ctx,x-24,p,x,p,'#4cc7e4');line(ctx,x+s,p,x+s+24,p,'#4cc7e4');}
@@ -244,7 +338,7 @@ export function draw(ctx:CanvasRenderingContext2D,scenes:Scene[],sec:number,tran
  ctx.font='bold 37px "Microsoft YaHei",Arial,sans-serif';wrap(ctx,scene.keyword,460,2).forEach((s,i)=>label(ctx,s,270,390+i*44,37,white,true));
  ctx.font='18px "Microsoft YaHei",Arial,sans-serif';wrap(ctx,scene.text,450,3).forEach((s,i)=>label(ctx,s,270,476+i*30,18,muted));
  const t=local;
- switch(scene.type){case 'chip':chip(ctx,t,transparent);break;case 'data':data(ctx,t,transparent);break;case 'network':network(ctx,t,transparent);break;default:workflow(ctx,t,transparent)}
+ switch(scene.type){case 'chip':chip(ctx,t,transparent);break;case 'data':data(ctx,t,transparent);break;case 'network':network(ctx,t,transparent);break;default:workflow(ctx,t,transparent,scene.flowSteps)}
  drawVisualElements(ctx,scene,t,transparent);
  aiEffects(ctx,scene,t);
  ctx.restore();
