@@ -34,6 +34,134 @@ function network(ctx:CanvasRenderingContext2D,t:number,transparent:boolean){
  edges.forEach(([a,b],i)=>{const [x,y]=pts[a],[xx,yy]=pts[b];line(ctx,x,y,xx,yy,'rgba(70,222,255,.55)',2);const p=(t*.55+i*.13)%1;dot(ctx,x+(xx-x)*p,y+(yy-y)*p,3,'#d5ffff')});
  pts.forEach(([x,y],i)=>{dot(ctx,x,y,i===0?22:12,'rgba(15,79,109,.95)');ctx.beginPath();ctx.arc(x,y,i===0?22:12,0,Math.PI*2);ctx.strokeStyle=cyan;ctx.lineWidth=2;ctx.stroke()});label(ctx,'AI',270,634,15,white,true);
 }
+
+function aiEffects(
+  ctx: CanvasRenderingContext2D,
+  scene: Scene,
+  t: number
+) {
+  const motion = scene.motion ?? 'flow';
+  const cx = 270;
+  const cy = 650;
+
+  ctx.save();
+
+  if (motion === 'pulse') {
+    const phase = (t * 0.7) % 1;
+
+    for (let i = 0; i < 3; i++) {
+      const p = (phase + i / 3) % 1;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 45 + p * 175, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(80,231,255,${0.35 * (1 - p)})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+  }
+
+  if (motion === 'flow') {
+    for (let i = 0; i < 18; i++) {
+      const p = (t * 0.45 + i / 18) % 1;
+      const x = 45 + p * 450;
+      const y = 785 + Math.sin(p * 12 + i) * 18;
+
+      dot(ctx, x, y, 2 + 2 * (1 - p), cyan);
+    }
+  }
+
+  if (motion === 'expand') {
+    const p = clamp(t / 1.2);
+    const r = 35 + p * 175;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(80,231,255,${0.55 * (1 - p)})`;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  if (motion === 'connect') {
+    const points = [
+      [120, 805],
+      [220, 775],
+      [320, 805],
+      [420, 775]
+    ];
+
+    points.forEach(([x, y], i) => {
+      if (i > 0) {
+        const [px, py] = points[i - 1];
+        const progress = clamp(t * 1.4 - (i - 1) * 0.35);
+
+        line(
+          ctx,
+          px,
+          py,
+          px + (x - px) * progress,
+          py + (y - py) * progress,
+          cyan,
+          2
+        );
+      }
+
+      if (t > i * 0.35) {
+        dot(ctx, x, y, 6, cyan);
+      }
+    });
+  }
+
+  if (motion === 'sequence') {
+    for (let i = 0; i < 4; i++) {
+      const p = clamp(t * 1.5 - i * 0.45);
+
+      ctx.globalAlpha = p;
+      rr(ctx, 70 + i * 105, 785, 85, 42, 8);
+      ctx.fillStyle = 'rgba(80,231,255,.18)';
+      ctx.fill();
+      ctx.strokeStyle = cyan;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      label(
+        ctx,
+        String(i + 1).padStart(2, '0'),
+        112 + i * 105,
+        806,
+        17,
+        white,
+        true
+      );
+    }
+  }
+
+  ctx.restore();
+
+  if (scene.highlight) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const scale = 1 + 0.04 * Math.sin(t * 4);
+    ctx.translate(cx, 858);
+    ctx.scale(scale, scale);
+
+    ctx.font = 'bold 27px "Microsoft YaHei",Arial,sans-serif';
+
+    const text = scene.highlight.slice(0, 12);
+    const width = Math.min(440, ctx.measureText(text).width + 46);
+
+    rr(ctx, -width / 2, -24, width, 48, 12);
+    ctx.fillStyle = 'rgba(10,55,82,.88)';
+    ctx.fill();
+    ctx.strokeStyle = cyan;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    label(ctx, text, 0, 0, 27, white, true);
+    ctx.restore();
+  }
+}
 export function draw(ctx:CanvasRenderingContext2D,scenes:Scene[],sec:number,transparent=false){
  ctx.clearRect(0,0,W,H);
  if(!scenes.length)return;
@@ -46,6 +174,7 @@ export function draw(ctx:CanvasRenderingContext2D,scenes:Scene[],sec:number,tran
  ctx.font='18px "Microsoft YaHei",Arial,sans-serif';wrap(ctx,scene.text,450,3).forEach((s,i)=>label(ctx,s,270,476+i*30,18,muted));
  const t=local;
  switch(scene.type){case 'chip':chip(ctx,t,transparent);break;case 'data':data(ctx,t,transparent);break;case 'network':network(ctx,t,transparent);break;default:workflow(ctx,t,transparent)}
+ aiEffects(ctx,scene,t);
  ctx.restore();
  ctx.fillStyle=transparent?'rgba(45,125,150,.45)':'#28445f';ctx.fillRect(36,914,468,2);
  ctx.fillStyle=cyan;const duration=Math.max(1,...scenes.map(s=>s.end));ctx.fillRect(36,914,468*clamp(sec/duration),2);
