@@ -1,4 +1,5 @@
 
+
 export type Scene = {
   id: number;
   start: number;
@@ -6,7 +7,13 @@ export type Scene = {
   text: string;
   keyword: string;
   type: 'workflow' | 'chip' | 'data' | 'network';
+
+  // AI 精细化分镜参数
+  visualElements?: string[];
+  motion?: 'flow' | 'pulse' | 'expand' | 'connect' | 'sequence';
+  highlight?: string;
 };
+
 
 // 将 SRT 时间转换为秒
 function toSeconds(value: string): number {
