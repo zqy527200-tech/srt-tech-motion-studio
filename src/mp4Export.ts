@@ -35,6 +35,77 @@ function network(ctx:CanvasRenderingContext2D,t:number,transparent:boolean){
  pts.forEach(([x,y],i)=>{dot(ctx,x,y,i===0?22:12,'rgba(15,79,109,.95)');ctx.beginPath();ctx.arc(x,y,i===0?22:12,0,Math.PI*2);ctx.strokeStyle=cyan;ctx.lineWidth=2;ctx.stroke()});label(ctx,'AI',270,634,15,white,true);
 }
 
+
+function drawVisualElements(
+  ctx: CanvasRenderingContext2D,
+  scene: Scene,
+  t: number,
+  transparent: boolean
+) {
+  const elements = (scene.visualElements ?? [])
+    .filter((s): s is string => typeof s === 'string' && !!s.trim())
+    .slice(0, 4);
+
+  if (!elements.length) return;
+
+  const count = elements.length;
+  const boxW = count === 2 ? 172 : count === 3 ? 138 : 112;
+  const gap = count === 2 ? 34 : count === 3 ? 18 : 10;
+  const totalW = count * boxW + (count - 1) * gap;
+  const startX = (540 - totalW) / 2;
+  const y = 780;
+  const boxH = 58;
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  elements.forEach((element, i) => {
+    const appear = clamp((t - i * 0.22) / 0.45);
+    if (appear <= 0) return;
+
+    const x = startX + i * (boxW + gap);
+    const rise = (1 - appear) * 18;
+
+    ctx.save();
+    ctx.globalAlpha *= appear;
+
+    panel(ctx, x, y + rise, boxW, boxH, transparent);
+
+    const text = element.slice(0, 9);
+    const fontSize = count >= 4 ? 13 : 15;
+    label(
+      ctx,
+      text,
+      x + boxW / 2,
+      y + rise + boxH / 2,
+      fontSize,
+      white,
+      true
+    );
+
+    ctx.restore();
+  });
+
+  // 节点之间依次建立连接
+  for (let i = 0; i < count - 1; i++) {
+    const progress = clamp((t - 0.25 - i * 0.22) / 0.4);
+    if (progress <= 0) continue;
+
+    const x1 = startX + i * (boxW + gap) + boxW;
+    const x2 = x1 + gap;
+    const yy = y + boxH / 2;
+
+    line(ctx, x1, yy, x1 + (x2 - x1) * progress, yy, cyan, 2);
+
+    if (scene.motion === 'flow' && progress >= 1) {
+      const p = (t * 0.9 + i * 0.2) % 1;
+      dot(ctx, x1 + (x2 - x1) * p, yy, 3, white);
+    }
+  }
+
+  ctx.restore();
+}
 function aiEffects(
   ctx: CanvasRenderingContext2D,
   scene: Scene,
@@ -174,6 +245,7 @@ export function draw(ctx:CanvasRenderingContext2D,scenes:Scene[],sec:number,tran
  ctx.font='18px "Microsoft YaHei",Arial,sans-serif';wrap(ctx,scene.text,450,3).forEach((s,i)=>label(ctx,s,270,476+i*30,18,muted));
  const t=local;
  switch(scene.type){case 'chip':chip(ctx,t,transparent);break;case 'data':data(ctx,t,transparent);break;case 'network':network(ctx,t,transparent);break;default:workflow(ctx,t,transparent)}
+ drawVisualElements(ctx,scene,t,transparent);
  aiEffects(ctx,scene,t);
  ctx.restore();
  ctx.fillStyle=transparent?'rgba(45,125,150,.45)':'#28445f';ctx.fillRect(36,914,468,2);
