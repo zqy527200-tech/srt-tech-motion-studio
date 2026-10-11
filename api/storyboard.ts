@@ -79,7 +79,8 @@ network：网络、服务器、云端、通信、连接
 
 返回 JSON 对象，格式为：
 
-{"shots":[{"id":1,"keyword":"算力提升","type":"chip","visualElements":["AI芯片","数据流","算力指标"],"motion":"flow","highlight":"3×"}]}
+
+{"shots":[{"id":1,"keyword":"AI视频制作","type":"workflow","visualElements":["选题","写稿","配音","成片"],"motion":"sequence","highlight":"自动化","flowSteps":["选题","写稿","配音","成片"]}]}
 
 
 要求：
@@ -99,6 +100,12 @@ network：网络、服务器、云端、通信、连接
 8. highlight：从原字幕中提取最值得强调的数字或关键词，最多 12 个字符；没有合适内容时返回空字符串。
 9. visualElements、motion、highlight 都必须出现在每个镜头中。
 10. 不要编造原字幕中不存在的具体数值。
+
+11. 每个镜头都必须返回 flowSteps 字段，类型为字符串数组。
+12. 当 type 为 workflow 时，根据字幕语义生成 2 到 4 个流程节点，节点名称使用简短中文，每个节点不超过 6 个字符。
+13. 流程节点必须符合字幕所表达的实际顺序，不要机械地使用“输入、识别、处理、输出”。
+14. 当字幕没有明确流程时，flowSteps 返回空数组 []，不要编造流程步骤。
+15. flowSteps 和 visualElements 可以不同：flowSteps 表示有先后顺序的步骤，visualElements 表示画面中的关键元素。
 
             },
             {
@@ -176,10 +183,23 @@ return {
       ? shot.motion
       : 'pulse',
 
-  highlight:
-    typeof shot?.highlight === 'string'
-      ? shot.highlight.slice(0, 12)
-      : ''
+  
+highlight:
+  typeof shot?.highlight === 'string'
+    ? shot.highlight.slice(0, 12)
+    : '',
+
+flowSteps:
+  Array.isArray(shot?.flowSteps) && type === 'workflow'
+    ? shot.flowSteps
+        .filter((item: unknown): item is string =>
+          typeof item === 'string'
+        )
+        .map((item: string) => item.trim().slice(0, 6))
+        .filter((item: string) => item.length > 0)
+        .slice(0, 4)
+    : []
+
 };
 
     });
