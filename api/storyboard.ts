@@ -78,7 +78,9 @@ data：数据、AI模型、算法、统计、计算
 network：网络、服务器、云端、通信、连接
 
 返回 JSON 对象，格式为：
-{"shots":[{"id":1,"keyword":"简短中文动画标题","type":"chip"}]}
+
+{"shots":[{"id":1,"keyword":"算力提升","type":"chip","visualElements":["AI芯片","数据流","算力指标"],"motion":"flow","highlight":"3×"}]}
+
 
 要求：
 1. 每句字幕返回一个镜头，保持原始顺序。
@@ -86,6 +88,18 @@ network：网络、服务器、云端、通信、连接
 3. type 必须是四种类型之一。
 4. 不要改变字幕时间。
 5. 只返回 JSON。`
+
+6. visualElements：提供 2 到 4 个适合画面呈现的中文视觉元素，每个元素尽量简短。
+7. motion：必须从以下五种运动方式中选择：
+   flow：数据流动、粒子移动
+   pulse：核心闪烁、能量脉冲
+   expand：结构展开、数值增长
+   connect：节点连接、线路形成
+   sequence：步骤依次出现
+8. highlight：从原字幕中提取最值得强调的数字或关键词，最多 12 个字符；没有合适内容时返回空字符串。
+9. visualElements、motion、highlight 都必须出现在每个镜头中。
+10. 不要编造原字幕中不存在的具体数值。
+
             },
             {
               role: 'user',
@@ -126,17 +140,48 @@ network：网络、服务器、云端、通信、连接
       const shot = shots[index];
       const type = shot?.type as SceneType;
 
-      return {
-        ...scene,
-        keyword:
-          typeof shot?.keyword === 'string' &&
-          shot.keyword.trim()
-            ? shot.keyword.trim().slice(0, 20)
-            : scene.keyword,
-        type: allowedTypes.has(type)
-          ? type
-          : scene.type
-      };
+      
+const allowedMotions = [
+  'flow',
+  'pulse',
+  'expand',
+  'connect',
+  'sequence'
+];
+
+return {
+  ...scene,
+  keyword:
+    typeof shot?.keyword === 'string' &&
+    shot.keyword.trim()
+      ? shot.keyword.trim().slice(0, 20)
+      : scene.keyword,
+
+  type: allowedTypes.has(type)
+    ? type
+    : scene.type,
+
+  visualElements:
+    Array.isArray(shot?.visualElements)
+      ? shot.visualElements
+          .filter((item: unknown): item is string =>
+            typeof item === 'string'
+          )
+          .slice(0, 4)
+          .map((item: string) => item.slice(0, 20))
+      : [],
+
+  motion:
+    allowedMotions.includes(shot?.motion)
+      ? shot.motion
+      : 'pulse',
+
+  highlight:
+    typeof shot?.highlight === 'string'
+      ? shot.highlight.slice(0, 12)
+      : ''
+};
+
     });
 
     return res.status(200).json({ scenes: updated });
