@@ -12,11 +12,11 @@ export type Scene = {
   visualElements?: string[];
   motion?: 'flow' | 'pulse' | 'expand' | 'connect' | 'sequence';
   highlight?: string;
-};
+
 
   // AI 根据字幕生成的流程节点
   flowSteps?: string[];
-
+};
 
 // 将 SRT 时间转换为秒
 function toSeconds(value: string): number {
